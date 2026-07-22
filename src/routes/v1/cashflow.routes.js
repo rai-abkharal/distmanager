@@ -1,0 +1,16 @@
+import { Router } from "express";
+import { cashflowController } from "../../controllers/cashflow.controller.js";
+import { validate } from "../../middlewares/validate.middleware.js";
+import { expenseSchema } from "../../validators/index.js";
+
+const router = Router();
+router.post("/expense", validate(expenseSchema), cashflowController.addExpense);
+router.get("/expense", cashflowController.listExpenses);
+router.get("/expense/breakdown", cashflowController.breakdown);
+router.get("/cash-in-hand", cashflowController.cashInHand);
+router.get("/daily-summary", cashflowController.dailySummary);
+router.get("/categories", cashflowController.categories);
+router.post("/categories", cashflowController.addCategory);
+router.get("/settings", cashflowController.getSettings);
+router.put("/settings", cashflowController.updateSettings);
+export default router;
