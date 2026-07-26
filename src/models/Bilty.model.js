@@ -14,6 +14,9 @@ const biltyItemSchema = new mongoose.Schema(
 
 const biltySchema = new mongoose.Schema(
   {
+    // Human-friendly bill number (e.g. "INV-0007"). Auto-generated when not
+    // supplied; nullable/sparse so legacy bills without one stay valid.
+    billNumber: { type: String, default: null, index: true },
     date: { type: Date, default: Date.now, index: true },
     party: {
       type: mongoose.Schema.Types.ObjectId,

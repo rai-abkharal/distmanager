@@ -13,6 +13,11 @@ export const ledgerController = {
     res.status(201).json(new ApiResponse(201, entry, "Ledger entry created"));
   }),
 
+  editEntry: asyncWrapper(async (req, res) => {
+    const entry = await ledgerService.editEntry(req.params.id, req.body);
+    res.status(200).json(new ApiResponse(200, entry, "Entry updated"));
+  }),
+
   getPartyLedger: asyncWrapper(async (req, res) => {
     const { startDate, endDate } = req.query;
     const data = await ledgerService.getPartyLedger(req.params.partyId, { startDate, endDate });

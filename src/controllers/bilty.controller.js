@@ -14,6 +14,11 @@ export const biltyController = {
     res.status(200).json(new ApiResponse(200, bilties));
   }),
 
+  nextNumber: asyncWrapper(async (req, res) => {
+    const data = await biltyService.previewNextNumber();
+    res.status(200).json(new ApiResponse(200, data));
+  }),
+
   getById: asyncWrapper(async (req, res) => {
     const bilty = await biltyService.getById(req.params.id);
     res.status(200).json(new ApiResponse(200, bilty));

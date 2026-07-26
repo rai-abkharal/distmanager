@@ -7,5 +7,6 @@ const router = Router();
 router.post("/payment", validate(paymentSchema), ledgerController.recordPayment);
 router.post("/manual", ledgerController.manualEntry);
 router.get("/party/:partyId", ledgerController.getPartyLedger);
+router.put("/:id", ledgerController.editEntry);
 router.delete("/:id", ledgerController.deleteEntry);
 export default router;

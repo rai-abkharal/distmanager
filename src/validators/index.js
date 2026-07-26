@@ -39,6 +39,7 @@ export const biltySchema = z.object({
   body: z.object({
     partyId: z.string().min(1),
     date: z.string().optional(),
+    billNumber: z.string().max(40).optional(),
     fromCompany: z.boolean().optional(),
     items: z
       .array(

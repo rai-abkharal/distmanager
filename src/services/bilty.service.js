@@ -6,7 +6,19 @@ import { inventoryRepository } from "../repositories/inventory.repository.js";
 import { ledgerService } from "./ledger.service.js";
 import { productService } from "./product.service.js";
 import { companyService } from "./company.service.js";
+import { Counter } from "../models/Counter.model.js";
+import { Bilty } from "../models/Bilty.model.js";
 import { ApiError } from "../utils/ApiError.js";
+
+/** Next auto bill number ("INV-0007"), atomically incremented in the session. */
+const nextBillNumber = async (session) => {
+  const counter = await Counter.findOneAndUpdate(
+    { _id: "bilty" },
+    { $inc: { seq: 1 } },
+    { new: true, upsert: true, session }
+  );
+  return `INV-${String(counter.seq).padStart(4, "0")}`;
+};
 
 export const biltyService = {
   /**
@@ -30,6 +42,7 @@ export const biltyService = {
     fromCompany = true,
     hasDeliveryCharge,
     deliveryCharge = 0,
+    billNumber,
   }) => {
     const party = await partyRepository.findById(partyId);
     if (!party) throw new ApiError(404, "Party not found");
@@ -38,9 +51,23 @@ export const biltyService = {
       throw new ApiError(400, "Delivery charge amount required when checkbox is checked");
     }
 
+    // A custom bill number must be unique across all bills.
+    if (billNumber) {
+      const trimmed = String(billNumber).trim();
+      if (trimmed) {
+        const existing = await Bilty.findOne({ billNumber: trimmed }).lean();
+        if (existing) throw new ApiError(409, `Bill number "${trimmed}" is already used`);
+      }
+    }
+
     const session = await mongoose.startSession();
     session.startTransaction();
     try {
+      // Use the caller's bill number when provided, otherwise auto-sequence.
+      const finalBillNumber =
+        billNumber && String(billNumber).trim()
+          ? String(billNumber).trim()
+          : await nextBillNumber(session);
       // Build items with pricing + scheme free units
       let productValue = 0;
       const biltyItems = [];
@@ -76,6 +103,7 @@ export const biltyService = {
 
       const bilty = await biltyRepository.create(
         {
+          billNumber: finalBillNumber,
           date: date || new Date(),
           party: partyId,
           items: biltyItems,
@@ -95,7 +123,7 @@ export const biltyService = {
           partyId,
           type: "debit",
           amount: productValue,
-          description: `Bill #${bilty._id} - ${shipmentLabel}`,
+          description: `Bill ${finalBillNumber} - ${shipmentLabel}`,
           source: "bilty",
           refId: bilty._id,
           date,
@@ -110,7 +138,7 @@ export const biltyService = {
             partyId,
             type: "credit",
             amount: deliveryCharge,
-            description: `Delivery charge - Bill #${bilty._id}`,
+            description: `Delivery charge - Bill ${finalBillNumber}`,
             source: "delivery_charge",
             refId: bilty._id,
             date,
@@ -126,7 +154,7 @@ export const biltyService = {
             amount: productValue,
             source: "bilty",
             refId: bilty._id,
-            note: `Bill #${bilty._id} direct shipment`,
+            note: `Bill ${finalBillNumber} direct shipment`,
           },
           session
         );
@@ -142,8 +170,8 @@ export const biltyService = {
               quantity: out,
               party: partyId,
               note: bi.freeQuantity
-                ? `Bill #${bilty._id}: ${bi.quantity} sold + ${bi.freeQuantity} free`
-                : `Bill #${bilty._id}: ${bi.quantity} dispatched`,
+                ? `Bill ${finalBillNumber}: ${bi.quantity} sold + ${bi.freeQuantity} free`
+                : `Bill ${finalBillNumber}: ${bi.quantity} dispatched`,
               balanceAfter: stock.currentStock,
               date: date || new Date(),
             },
@@ -164,6 +192,12 @@ export const biltyService = {
 
   list: (filters) => biltyRepository.findAll(filters),
   getById: (id) => biltyRepository.findById(id),
+  /** Preview of the next auto bill number without consuming the counter. */
+  previewNextNumber: async () => {
+    const counter = await Counter.findById("bilty").lean();
+    const next = (counter?.seq || 0) + 1;
+    return { billNumber: `INV-${String(next).padStart(4, "0")}` };
+  },
   deliveryChargeReport: async (filters) => {
     const bilties = await biltyRepository.findAll({ ...filters, onlyWithCharge: true });
     const total = await biltyRepository.deliveryChargeTotal(filters);
