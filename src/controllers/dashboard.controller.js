@@ -7,4 +7,10 @@ export const dashboardController = {
     const data = await dashboardService.getDashboard();
     res.status(200).json(new ApiResponse(200, data));
   }),
+
+  summary: asyncWrapper(async (req, res) => {
+    const { startDate, endDate } = req.query;
+    const data = await dashboardService.getSummary({ startDate, endDate });
+    res.status(200).json(new ApiResponse(200, data));
+  }),
 };

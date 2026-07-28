@@ -2,7 +2,8 @@ import { Inventory, StockMovement } from "../models/Inventory.model.js";
 
 export const inventoryRepository = {
   createStock: (data) => Inventory.create(data),
-  findByProduct: (productId) => Inventory.findOne({ product: productId }),
+  findByProduct: (productId, session = null) =>
+    Inventory.findOne({ product: productId }).session(session),
   findAll: () => Inventory.find().populate("product"),
 
   adjustStock: (productId, delta, session = null) =>

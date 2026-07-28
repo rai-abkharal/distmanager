@@ -32,6 +32,10 @@ const biltySchema = new mongoose.Schema(
     hasDeliveryCharge: { type: Boolean, default: false },
     deliveryCharge: { type: Number, default: 0 },
     status: { type: String, enum: ["open", "settled"], default: "open" },
+    // Soft delete: a removed bill keeps its record for audit but is reversed out
+    // of ledgers, company liability and inventory, and hidden from all lists.
+    isDeleted: { type: Boolean, default: false, index: true },
+    deleteReason: { type: String, default: "" },
   },
   { timestamps: true }
 );

@@ -24,6 +24,17 @@ const totalSentToCompany = async () => {
   return payments.reduce((s, p) => s + p.amount, 0);
 };
 
+// How many payment entries were recorded in a date range (dashboard summary).
+const countCollected = async ({ startDate, endDate } = {}) => {
+  const match = { type: "credit", source: "payment", isDeleted: false };
+  if (startDate || endDate) {
+    match.date = {};
+    if (startDate) match.date.$gte = new Date(startDate);
+    if (endDate) match.date.$lte = new Date(endDate);
+  }
+  return Ledger.countDocuments(match);
+};
+
 export const cashflowService = {
   addExpense: async ({ amount, category, note, date }) => {
     if (amount <= 0) throw new ApiError(400, "Amount must be greater than 0");
@@ -35,6 +46,14 @@ export const cashflowService = {
   expenseBreakdown: (filters) => expenseRepository.breakdownByCategory(filters),
   categories: () => expenseRepository.allCategories(),
   addCategory: (name) => expenseRepository.createCategory(name),
+
+  // Payments collected from parties within a date range (dashboard summary).
+  collectedBetween: ({ startDate, endDate } = {}) =>
+    totalCollected({ startDate, endDate }),
+
+  // Number of payments collected within a date range (dashboard summary).
+  collectedCountBetween: ({ startDate, endDate } = {}) =>
+    countCollected({ startDate, endDate }),
 
   // Live Cash in Hand = Collected − Expenses − Sent to Company
   cashInHand: async () => {

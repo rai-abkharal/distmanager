@@ -111,15 +111,18 @@ export const ledgerService = {
     await recalcPartyBalance(entry.party);
     return { deleted: true };
   },
+
+  // Rebuild running balances after external changes (e.g. a bill reversal).
+  recalcParty: (partyId, session = null) => recalcPartyBalance(partyId, session),
 };
 
 // Rebuild running balances after edit/delete
-const recalcPartyBalance = async (partyId) => {
-  const entries = await ledgerRepository.findByParty(partyId);
+const recalcPartyBalance = async (partyId, session = null) => {
+  const entries = await ledgerRepository.findByParty(partyId, {}, session);
   let running = 0;
   for (const e of entries) {
     running += e.type === "debit" ? e.amount : -e.amount;
-    await ledgerRepository.update(e._id, { runningBalance: running });
+    await ledgerRepository.update(e._id, { runningBalance: running }, session);
   }
-  await partyRepository.update(partyId, { currentBalance: running });
+  await partyRepository.update(partyId, { currentBalance: running }, session);
 };

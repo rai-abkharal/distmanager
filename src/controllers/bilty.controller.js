@@ -8,6 +8,16 @@ export const biltyController = {
     res.status(201).json(new ApiResponse(201, bilty, "Bilty created"));
   }),
 
+  update: asyncWrapper(async (req, res) => {
+    const bilty = await biltyService.updateBilty(req.params.id, req.body);
+    res.status(200).json(new ApiResponse(200, bilty, "Bilty updated"));
+  }),
+
+  remove: asyncWrapper(async (req, res) => {
+    const result = await biltyService.deleteBilty(req.params.id, req.body?.reason);
+    res.status(200).json(new ApiResponse(200, result, "Bilty deleted"));
+  }),
+
   list: asyncWrapper(async (req, res) => {
     const { party, startDate, endDate } = req.query;
     const bilties = await biltyService.list({ party, startDate, endDate });

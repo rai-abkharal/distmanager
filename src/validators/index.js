@@ -54,6 +54,27 @@ export const biltySchema = z.object({
   }),
 });
 
+// Editing a bill: every field optional (party can't change), so callers can
+// send just the fields they touched.
+export const biltyUpdateSchema = z.object({
+  body: z.object({
+    date: z.string().optional(),
+    billNumber: z.string().max(40).optional(),
+    fromCompany: z.boolean().optional(),
+    items: z
+      .array(
+        z.object({
+          productId: z.string().min(1),
+          quantity: z.number().positive(),
+        })
+      )
+      .min(1, "At least one item required")
+      .optional(),
+    hasDeliveryCharge: z.boolean().optional(),
+    deliveryCharge: z.number().min(0).optional(),
+  }),
+});
+
 export const companyPaymentSchema = z.object({
   body: z.object({
     amount: z.number().positive(),

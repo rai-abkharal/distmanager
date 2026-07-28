@@ -21,7 +21,7 @@ export const partyRepository = {
     return Party.find(query).sort(SORT_MAP[sortBy] || SORT_MAP.name);
   },
 
-  update: (id, data) => Party.findByIdAndUpdate(id, data, { new: true }),
+  update: (id, data, session = null) => Party.findByIdAndUpdate(id, data, { new: true, session }),
 
   updateBalance: (id, delta, session = null) =>
     Party.findByIdAndUpdate(

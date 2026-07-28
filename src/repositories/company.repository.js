@@ -4,6 +4,10 @@ export const companyRepository = {
   addLedgerEntry: (data, session = null) =>
     session ? CompanyLedger.create([data], { session }).then((r) => r[0]) : CompanyLedger.create(data),
 
+  // Reverse a source document's liability by physically removing its entries.
+  removeByRef: (refId, session = null) =>
+    CompanyLedger.deleteMany({ refId }, { session }),
+
   addPayment: (data) => CompanyPayment.create(data),
 
   payments: ({ cycleMonth } = {}) => {
