@@ -17,9 +17,6 @@ const publicUser = (user) => ({
 export const authService = {
   // Single-user setup (V1) — creates the account if none exists
   setup: async ({ name, username, password }) => {
-    const existing = await User.findOne();
-    if (existing) throw new ApiError(409, "Account already exists. Please login.");
-
     const usernameTaken = await User.findOne({ username: username.toLowerCase() });
     if (usernameTaken) throw new ApiError(409, "Username already taken");
 

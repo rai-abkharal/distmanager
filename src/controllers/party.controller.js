@@ -38,6 +38,12 @@ export const partyController = {
     res.status(200).json(new ApiResponse(200, null, "Party archived"));
   }),
 
+  remove: asyncWrapper(async (req, res) => {
+    const party = await partyRepository.archive(req.params.id);
+    if (!party) throw new ApiError(404, "Party not found");
+    res.status(200).json(new ApiResponse(200, null, "Party deleted"));
+  }),
+
   totalReceivables: asyncWrapper(async (req, res) => {
     const total = await partyRepository.totalReceivables();
     res.status(200).json(new ApiResponse(200, { totalReceivables: total }));

@@ -36,6 +36,15 @@ const assertBillNumberFree = async (billNumber, excludeId = null) => {
   if (existing) throw new ApiError(409, `Bill number "${trimmed}" is already used`);
 };
 
+// UI actions normally send the Mongo id. Accepting a displayed bill number as
+// well makes deletion work for older/offline clients that retained INV-xxxx.
+const findLiveBilty = async (idOrBillNumber) => {
+  const value = String(idOrBillNumber || "").trim();
+  const clauses = [{ billNumber: value }];
+  if (mongoose.isValidObjectId(value)) clauses.unshift({ _id: value });
+  return Bilty.findOne({ $or: clauses, isDeleted: false });
+};
+
 /**
  * Price each requested item, compute scheme free units and the total product
  * value. When goods come from my own stock, verify there's enough on hand
@@ -247,7 +256,7 @@ export const biltyService = {
    * inventory always end up consistent with the edited bill.
    */
   updateBilty: async (id, patch = {}) => {
-    const existing = await Bilty.findOne({ _id: id, isDeleted: false });
+    const existing = await findLiveBilty(id);
     if (!existing) throw new ApiError(404, "Bill not found");
 
     // Resolve the effective fields (fall back to current values when omitted).
@@ -319,7 +328,7 @@ export const biltyService = {
    * keep the record (hidden from lists) for audit.
    */
   deleteBilty: async (id, reason = "") => {
-    const existing = await Bilty.findOne({ _id: id, isDeleted: false });
+    const existing = await findLiveBilty(id);
     if (!existing) throw new ApiError(404, "Bill not found");
 
     const session = await mongoose.startSession();

@@ -17,8 +17,11 @@ export const partyRepository = {
     const query = {};
     if (!includeArchived) query.isArchived = false;
     if (city) query.city = city;
-    if (search) query.name = { $regex: search, $options: "i" };
-    return Party.find(query).sort(SORT_MAP[sortBy] || SORT_MAP.name);
+    if (search) {
+      const escaped = String(search).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      query.name = { $regex: escaped, $options: "i" };
+    }
+    return Party.find(query).sort(SORT_MAP[sortBy] || SORT_MAP.name).limit(100);
   },
 
   update: (id, data, session = null) => Party.findByIdAndUpdate(id, data, { new: true, session }),

@@ -10,4 +10,5 @@ router.get("/receivables", partyController.totalReceivables);
 router.get("/:id", partyController.getById);
 router.put("/:id", partyController.update);
 router.patch("/:id/archive", partyController.archive);
+router.delete("/:id", partyController.remove);
 export default router;
