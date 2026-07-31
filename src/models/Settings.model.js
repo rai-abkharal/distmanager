@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { tenantPlugin } from "./plugins/tenant.plugin.js";
 
 const settingsSchema = new mongoose.Schema(
   {
@@ -9,5 +10,7 @@ const settingsSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+settingsSchema.plugin(tenantPlugin);
 
 export const Settings = mongoose.model("Settings", settingsSchema);

@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { tenantPlugin } from "./plugins/tenant.plugin.js";
 
 const partySchema = new mongoose.Schema(
   {
@@ -14,5 +15,7 @@ const partySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+partySchema.plugin(tenantPlugin);
 
 export const Party = mongoose.model("Party", partySchema);

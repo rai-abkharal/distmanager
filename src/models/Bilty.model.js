@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { tenantPlugin } from "./plugins/tenant.plugin.js";
 
 const biltyItemSchema = new mongoose.Schema(
   {
@@ -39,5 +40,7 @@ const biltySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+biltySchema.plugin(tenantPlugin);
 
 export const Bilty = mongoose.model("Bilty", biltySchema);

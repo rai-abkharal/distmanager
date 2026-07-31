@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { tenantPlugin } from "./plugins/tenant.plugin.js";
 
 const expenseSchema = new mongoose.Schema(
   {
@@ -10,6 +11,8 @@ const expenseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
+expenseSchema.plugin(tenantPlugin);
+
 export const Expense = mongoose.model("Expense", expenseSchema);
 
 const categorySchema = new mongoose.Schema(
@@ -19,5 +22,7 @@ const categorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+categorySchema.plugin(tenantPlugin);
 
 export const ExpenseCategory = mongoose.model("ExpenseCategory", categorySchema);

@@ -19,6 +19,11 @@ export const authController = {
     res.status(200).json(new ApiResponse(200, result, "Login successful"));
   }),
 
+  refresh: asyncWrapper(async (req, res) => {
+    const result = await authService.refresh(req.body?.token);
+    res.status(200).json(new ApiResponse(200, result, "Session renewed"));
+  }),
+
   // Protected: current user from JWT
   me: asyncWrapper(async (req, res) => {
     res.status(200).json(

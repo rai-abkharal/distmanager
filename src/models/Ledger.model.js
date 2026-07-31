@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { tenantPlugin } from "./plugins/tenant.plugin.js";
 
 const ledgerSchema = new mongoose.Schema(
   {
@@ -30,5 +31,6 @@ const ledgerSchema = new mongoose.Schema(
 );
 
 ledgerSchema.index({ party: 1, date: -1 });
+ledgerSchema.plugin(tenantPlugin);
 
 export const Ledger = mongoose.model("Ledger", ledgerSchema);

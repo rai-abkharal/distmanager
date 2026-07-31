@@ -34,6 +34,21 @@ export const authService = {
     return { user: publicUser(user), token: generateToken(user) };
   },
 
+  // The app can renew a signed but expired access token without interrupting a
+  // legitimate user's work. A tampered token still fails signature validation.
+  refresh: async (token) => {
+    if (!token) throw new ApiError(401, "Not authorized, no token provided");
+    let decoded;
+    try {
+      decoded = jwt.verify(token, env.JWT_SECRET, { ignoreExpiration: true });
+    } catch (_) {
+      throw new ApiError(401, "Not authorized, token invalid");
+    }
+    const user = await User.findById(decoded.id);
+    if (!user) throw new ApiError(401, "User not found");
+    return { user: publicUser(user), token: generateToken(user) };
+  },
+
   // Whether an account has been created yet (drives setup vs login on the client)
   status: async () => {
     const user = await User.findOne();

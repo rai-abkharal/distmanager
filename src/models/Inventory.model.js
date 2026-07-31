@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { tenantPlugin } from "./plugins/tenant.plugin.js";
 
 // Current stock per product
 const inventorySchema = new mongoose.Schema(
@@ -15,6 +16,8 @@ const inventorySchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+inventorySchema.plugin(tenantPlugin);
 
 export const Inventory = mongoose.model("Inventory", inventorySchema);
 
@@ -36,5 +39,7 @@ const stockMovementSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+stockMovementSchema.plugin(tenantPlugin);
 
 export const StockMovement = mongoose.model("StockMovement", stockMovementSchema);

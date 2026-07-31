@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { tenantPlugin } from "./plugins/tenant.plugin.js";
 
 const productSchema = new mongoose.Schema(
   {
@@ -19,5 +20,7 @@ const productSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+productSchema.plugin(tenantPlugin);
 
 export const Product = mongoose.model("Product", productSchema);

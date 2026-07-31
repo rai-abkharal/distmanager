@@ -1,4 +1,5 @@
 import mongoose from "mongoose";
+import { tenantPlugin } from "./plugins/tenant.plugin.js";
 
 // Payments made to company
 const companyPaymentSchema = new mongoose.Schema(
@@ -11,6 +12,8 @@ const companyPaymentSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+companyPaymentSchema.plugin(tenantPlugin);
 
 export const CompanyPayment = mongoose.model("CompanyPayment", companyPaymentSchema);
 
@@ -27,5 +30,7 @@ const companyLedgerSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+companyLedgerSchema.plugin(tenantPlugin);
 
 export const CompanyLedger = mongoose.model("CompanyLedger", companyLedgerSchema);
