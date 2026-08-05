@@ -6,6 +6,8 @@ import { expenseSchema } from "../../validators/index.js";
 const router = Router();
 router.post("/expense", validate(expenseSchema), cashflowController.addExpense);
 router.get("/expense", cashflowController.listExpenses);
+router.put("/expense/:id", cashflowController.updateExpense);
+router.delete("/expense/:id", cashflowController.deleteExpense);
 router.get("/expense/breakdown", cashflowController.breakdown);
 router.get("/cash-in-hand", cashflowController.cashInHand);
 router.get("/daily-summary", cashflowController.dailySummary);

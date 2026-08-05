@@ -39,4 +39,9 @@ export const biltyController = {
     const report = await biltyService.deliveryChargeReport({ party, startDate, endDate });
     res.status(200).json(new ApiResponse(200, report));
   }),
+
+  deleteDeliveryCharge: asyncWrapper(async (req, res) => {
+    await biltyService.deleteDeliveryCharge(req.params.id);
+    res.status(200).json(new ApiResponse(200, null, "Delivery charge deleted"));
+  }),
 };

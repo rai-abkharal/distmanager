@@ -7,6 +7,14 @@ export const cashflowController = {
     const expense = await cashflowService.addExpense(req.body);
     res.status(201).json(new ApiResponse(201, expense, "Expense added"));
   }),
+  updateExpense: asyncWrapper(async (req, res) => {
+    const expense = await cashflowService.updateExpense(req.params.id, req.body);
+    res.status(200).json(new ApiResponse(200, expense, "Expense updated"));
+  }),
+  deleteExpense: asyncWrapper(async (req, res) => {
+    await cashflowService.deleteExpense(req.params.id);
+    res.status(200).json(new ApiResponse(200, null, "Expense deleted"));
+  }),
 
   listExpenses: asyncWrapper(async (req, res) => {
     const { startDate, endDate, category } = req.query;

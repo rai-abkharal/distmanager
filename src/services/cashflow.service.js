@@ -46,6 +46,16 @@ export const cashflowService = {
   expenseBreakdown: (filters) => expenseRepository.breakdownByCategory(filters),
   categories: () => expenseRepository.allCategories(),
   addCategory: (name) => expenseRepository.createCategory(name),
+  updateExpense: async (id, data) => {
+    if (data.amount != null && data.amount <= 0) throw new ApiError(400, "Amount must be greater than 0");
+    const expense = await expenseRepository.update(id, data);
+    if (!expense) throw new ApiError(404, "Expense not found");
+    return expense;
+  },
+  deleteExpense: async (id) => {
+    const expense = await expenseRepository.remove(id);
+    if (!expense) throw new ApiError(404, "Expense not found");
+  },
 
   // Payments collected from parties within a date range (dashboard summary).
   collectedBetween: ({ startDate, endDate } = {}) =>

@@ -39,8 +39,7 @@ export const partyController = {
   }),
 
   remove: asyncWrapper(async (req, res) => {
-    const party = await partyRepository.archive(req.params.id);
-    if (!party) throw new ApiError(404, "Party not found");
+    await partyService.remove(req.params.id);
     res.status(200).json(new ApiResponse(200, null, "Party deleted"));
   }),
 

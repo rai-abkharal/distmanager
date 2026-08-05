@@ -7,6 +7,7 @@ const router = Router();
 router.post("/", validate(biltySchema), biltyController.create);
 router.get("/", biltyController.list);
 router.get("/delivery-charges", biltyController.deliveryChargeReport);
+router.delete("/delivery-charges/:id", biltyController.deleteDeliveryCharge);
 router.get("/next-number", biltyController.nextNumber);
 router.get("/:id", biltyController.getById);
 router.put("/:id", validate(biltyUpdateSchema), biltyController.update);

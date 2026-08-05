@@ -2,6 +2,8 @@ import { Expense, ExpenseCategory } from "../models/Expense.model.js";
 
 export const expenseRepository = {
   create: (data) => Expense.create(data),
+  update: (id, data) => Expense.findByIdAndUpdate(id, data, { new: true }),
+  remove: (id) => Expense.findByIdAndDelete(id),
 
   findAll: ({ startDate, endDate, category } = {}) => {
     const query = {};
@@ -45,4 +47,5 @@ export const expenseRepository = {
   // Categories
   createCategory: (name) => ExpenseCategory.create({ name }),
   allCategories: () => ExpenseCategory.find().sort({ name: 1 }),
+  removeCategory: (id) => ExpenseCategory.findByIdAndDelete(id),
 };

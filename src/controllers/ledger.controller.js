@@ -24,6 +24,12 @@ export const ledgerController = {
     res.status(200).json(new ApiResponse(200, data));
   }),
 
+  listPayments: asyncWrapper(async (req, res) => {
+    const { startDate, endDate, party } = req.query;
+    const payments = await ledgerService.listPayments({ startDate, endDate, party });
+    res.status(200).json(new ApiResponse(200, payments));
+  }),
+
   deleteEntry: asyncWrapper(async (req, res) => {
     const result = await ledgerService.deleteEntry(req.params.id, req.body.reason);
     res.status(200).json(new ApiResponse(200, result, "Entry deleted"));

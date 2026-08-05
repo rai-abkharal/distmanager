@@ -377,4 +377,11 @@ export const biltyService = {
     }));
     return { bilties: [...bilties, ...lateChargeRows], total: billTotal + lateCharges.reduce((sum, e) => sum + e.amount, 0) };
   },
+  deleteDeliveryCharge: async (id) => {
+    const bill = await Bilty.findOne({ _id: id, isDeleted: false, hasDeliveryCharge: true });
+    if (bill) {
+      return biltyService.updateBilty(id, { hasDeliveryCharge: false, deliveryCharge: 0 });
+    }
+    return ledgerService.deleteDeliveryCharge(id);
+  },
 };

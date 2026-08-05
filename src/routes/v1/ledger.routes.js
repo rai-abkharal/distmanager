@@ -6,6 +6,7 @@ import { paymentSchema } from "../../validators/index.js";
 const router = Router();
 router.post("/payment", validate(paymentSchema), ledgerController.recordPayment);
 router.post("/manual", ledgerController.manualEntry);
+router.get("/payments", ledgerController.listPayments);
 router.get("/party/:partyId", ledgerController.getPartyLedger);
 router.put("/:id", ledgerController.editEntry);
 router.delete("/:id", ledgerController.deleteEntry);

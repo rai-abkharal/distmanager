@@ -45,6 +45,14 @@ export const partyService = {
     await partyRepository.archive(id);
   },
 
+  remove: async (id) => {
+    const party = await partyRepository.findById(id);
+    if (!party) throw new ApiError(404, "Party not found");
+    // Removed parties must not continue contributing payments to cash-in-hand.
+    await ledgerService.removePartyEntries(id);
+    await partyRepository.archive(id);
+  },
+
   totalReceivables: async () => {
     const total = await partyRepository.totalReceivables();
     return { totalReceivables: total };
