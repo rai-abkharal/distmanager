@@ -7,6 +7,7 @@ const router = Router();
 router.post("/", validate(productSchema), productController.create);
 router.get("/", productController.list);
 router.get("/:id/scheme-preview", productController.previewScheme);
+router.put("/reorder", productController.reorder);
 router.put("/:id", productController.update);
 router.patch("/:id/archive", productController.archive);
 export default router;

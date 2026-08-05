@@ -13,7 +13,9 @@ export const partySchema = z.object({
 export const productSchema = z.object({
   body: z.object({
     name: z.string().min(1, "Name is required"),
-    unit: z.enum(["kg", "ltr", "pcs", "box"]),
+    unit: z.enum(["kg", "ltr", "g", "ml", "pcs", "box", "bag", "carton"]),
+    packSize: z.number().positive().optional(),
+    openingStock: z.number().min(0).optional(),
     price: z.number().min(0),
     scheme: z
       .object({
@@ -32,6 +34,8 @@ export const paymentSchema = z.object({
     paymentMode: z.enum(["cash", "online"]).optional(),
     description: z.string().optional(),
     date: z.string().optional(),
+    hasDeliveryCharge: z.boolean().optional(),
+    deliveryCharge: z.number().min(0).optional(),
   }),
 });
 

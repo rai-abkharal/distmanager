@@ -20,6 +20,11 @@ export const productController = {
     res.status(200).json(new ApiResponse(200, product, "Product updated"));
   }),
 
+  reorder: asyncWrapper(async (req, res) => {
+    await productService.reorder(req.body.productIds);
+    res.status(200).json(new ApiResponse(200, null, "Product order updated"));
+  }),
+
   archive: asyncWrapper(async (req, res) => {
     await productRepository.archive(req.params.id);
     res.status(200).json(new ApiResponse(200, null, "Product archived"));

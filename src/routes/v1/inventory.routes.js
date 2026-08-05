@@ -9,4 +9,5 @@ router.get("/levels", inventoryController.levels);
 router.get("/movements", inventoryController.movements);
 router.get("/low-stock", inventoryController.lowStock);
 router.post("/threshold", inventoryController.setThreshold);
+router.post("/set-stock", inventoryController.setStock);
 export default router;

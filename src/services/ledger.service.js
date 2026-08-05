@@ -1,5 +1,6 @@
 import { ledgerRepository } from "../repositories/ledger.repository.js";
 import { partyRepository } from "../repositories/party.repository.js";
+import mongoose from "mongoose";
 import { ApiError } from "../utils/ApiError.js";
 
 /**
@@ -15,7 +16,7 @@ const applyLedgerEntry = async (
   const party = await partyRepository.findById(partyId);
   if (!party) throw new ApiError(404, "Party not found");
 
-  const last = await ledgerRepository.lastEntry(partyId);
+  const last = await ledgerRepository.lastEntry(partyId, session);
   const prevBalance = last ? last.runningBalance : 0;
   const delta = type === "debit" ? amount : -amount;
   const runningBalance = prevBalance + delta;
@@ -43,17 +44,50 @@ export const ledgerService = {
   applyLedgerEntry,
 
   // Record a payment received from a party (credit)
-  recordPayment: async ({ partyId, amount, paymentMode = "cash", description = "Payment received", date }) => {
+  recordPayment: async ({
+    partyId,
+    amount,
+    paymentMode = "cash",
+    description = "Payment received",
+    date,
+    hasDeliveryCharge = false,
+    deliveryCharge = 0,
+  }) => {
     if (amount <= 0) throw new ApiError(400, "Amount must be greater than 0");
-    return applyLedgerEntry({
-      partyId,
-      type: "credit",
-      amount,
-      paymentMode,
-      description,
-      source: "payment",
-      date,
-    });
+    if (hasDeliveryCharge && deliveryCharge <= 0) {
+      throw new ApiError(400, "Delivery charge amount is required when selected");
+    }
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    try {
+      const payment = await applyLedgerEntry({
+        partyId,
+        type: "credit",
+        amount,
+        paymentMode,
+        description,
+        source: "payment",
+        date,
+      }, session);
+      if (hasDeliveryCharge) {
+        await applyLedgerEntry({
+          partyId,
+          type: "credit",
+          amount: deliveryCharge,
+          description: "Delivery charge",
+          source: "delivery_charge",
+          date,
+        }, session);
+      }
+      await recalcPartyBalance(partyId, session);
+      await session.commitTransaction();
+      return payment;
+    } catch (err) {
+      await session.abortTransaction();
+      throw err;
+    } finally {
+      session.endSession();
+    }
   },
 
   // Manual debit/credit adjustment

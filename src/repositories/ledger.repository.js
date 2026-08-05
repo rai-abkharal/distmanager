@@ -14,8 +14,8 @@ export const ledgerRepository = {
     return Ledger.find(query).sort({ date: 1, createdAt: 1 }).session(session);
   },
 
-  lastEntry: (partyId) =>
-    Ledger.findOne({ party: partyId, isDeleted: false }).sort({ date: -1, createdAt: -1 }),
+  lastEntry: (partyId, session = null) =>
+    Ledger.findOne({ party: partyId, isDeleted: false }).sort({ date: -1, createdAt: -1 }).session(session),
 
   findById: (id) => Ledger.findById(id),
 
@@ -28,4 +28,20 @@ export const ledgerRepository = {
 
   update: (id, data, session = null) =>
     Ledger.findByIdAndUpdate(id, data, { new: true, session }),
+
+  lateDeliveryCharges: ({ party, startDate, endDate } = {}) => {
+    const query = { source: "delivery_charge", refId: null, isDeleted: false };
+    if (party) query.party = party;
+    if (startDate || endDate) {
+      query.date = {};
+      if (startDate) query.date.$gte = new Date(startDate);
+      if (endDate) query.date.$lte = new Date(endDate);
+    }
+    return Ledger.find(query).populate("party").sort({ date: -1 });
+  },
+
+  lateDeliveryChargeTotal: async (filters = {}) => {
+    const entries = await ledgerRepository.lateDeliveryCharges(filters);
+    return entries.reduce((sum, entry) => sum + entry.amount, 0);
+  },
 };

@@ -360,7 +360,21 @@ export const biltyService = {
   },
   deliveryChargeReport: async (filters) => {
     const bilties = await biltyRepository.findAll({ ...filters, onlyWithCharge: true });
-    const total = await biltyRepository.deliveryChargeTotal(filters);
-    return { bilties, total };
+    const lateCharges = await ledgerRepository.lateDeliveryCharges(filters);
+    const billTotal = await biltyRepository.deliveryChargeTotal(filters);
+    // The UI already knows how to render bill records, so expose late charges
+    // in the same lightweight shape. They are ledger-only (no bill number).
+    const lateChargeRows = lateCharges.map((entry) => ({
+      _id: entry._id,
+      date: entry.date,
+      party: entry.party,
+      items: [],
+      productValue: 0,
+      fromCompany: false,
+      hasDeliveryCharge: true,
+      deliveryCharge: entry.amount,
+      status: "open",
+    }));
+    return { bilties: [...bilties, ...lateChargeRows], total: billTotal + lateCharges.reduce((sum, e) => sum + e.amount, 0) };
   },
 };

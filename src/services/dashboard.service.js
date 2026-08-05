@@ -4,6 +4,7 @@ import { companyService } from "./company.service.js";
 import { inventoryRepository } from "../repositories/inventory.repository.js";
 import { biltyRepository } from "../repositories/bilty.repository.js";
 import { expenseRepository } from "../repositories/expense.repository.js";
+import { ledgerRepository } from "../repositories/ledger.repository.js";
 
 export const dashboardService = {
   getDashboard: async () => {
@@ -29,14 +30,15 @@ export const dashboardService = {
   // charges, payments collected and expenses within the range.
   getSummary: async ({ startDate, endDate } = {}) => {
     const range = { startDate, endDate };
-    const { count, total, deliveryCharges } = await biltyRepository.periodStats(range);
+    const { count, total, deliveryCharges: billDeliveryCharges } = await biltyRepository.periodStats(range);
+    const lateDeliveryCharges = await ledgerRepository.lateDeliveryChargeTotal(range);
     const paymentsCollected = await cashflowService.collectedBetween(range);
     const paymentsCount = await cashflowService.collectedCountBetween(range);
     const expenses = await expenseRepository.total(range);
     return {
       billCount: count,
       billValue: total,
-      deliveryCharges,
+      deliveryCharges: billDeliveryCharges + lateDeliveryCharges,
       paymentsCollected,
       paymentsCount,
       expenses,

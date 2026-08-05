@@ -144,5 +144,24 @@ export const inventoryService = {
   getStockLevels: () => inventoryRepository.findAll(),
   getMovements: (productId, filters) => inventoryRepository.movements(productId, filters),
   setThreshold: ({ productId, threshold }) => inventoryRepository.setThreshold(productId, threshold),
+  setStock: async ({ productId, quantity, note = "" }) => {
+    if (quantity < 0) throw new ApiError(400, "Stock cannot be negative");
+    const product = await productRepository.findById(productId);
+    if (!product) throw new ApiError(404, "Product not found");
+    const existing = await inventoryRepository.findByProduct(productId);
+    const current = existing?.currentStock || 0;
+    const delta = quantity - current;
+    const stock = await inventoryRepository.adjustStock(productId, delta);
+    if (delta !== 0) {
+      await inventoryRepository.addMovement({
+        product: productId,
+        direction: delta > 0 ? "in" : "out",
+        quantity: Math.abs(delta),
+        note: note || "Stock correction from product edit",
+        balanceAfter: stock.currentStock,
+      });
+    }
+    return stock;
+  },
   lowStock: () => inventoryRepository.lowStock(),
 };

@@ -34,6 +34,11 @@ export const inventoryController = {
     res.status(200).json(new ApiResponse(200, result, "Threshold set"));
   }),
 
+  setStock: asyncWrapper(async (req, res) => {
+    const result = await inventoryService.setStock(req.body);
+    res.status(200).json(new ApiResponse(200, result, "Stock updated"));
+  }),
+
   lowStock: asyncWrapper(async (req, res) => {
     const items = await inventoryService.lowStock();
     res.status(200).json(new ApiResponse(200, items));
