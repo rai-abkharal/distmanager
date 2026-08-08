@@ -19,7 +19,12 @@ export const partyRepository = {
     if (city) query.city = city;
     if (search) {
       const escaped = String(search).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      query.name = { $regex: escaped, $options: "i" };
+      // A party is identified in the UI as "Name · City", so either part
+      // should match the same search field.
+      query.$or = [
+        { name: { $regex: escaped, $options: "i" } },
+        { city: { $regex: escaped, $options: "i" } },
+      ];
     }
     return Party.find(query).sort(SORT_MAP[sortBy] || SORT_MAP.name).limit(100);
   },
