@@ -20,7 +20,13 @@ export const tenantPlugin = (schema) => {
     clientId: { type: String, trim: true, index: true, sparse: true },
     version: { type: Number, default: 1, min: 1 },
   });
-  schema.index({ owner: 1, clientId: 1 }, { unique: true, sparse: true });
+  schema.index(
+    { owner: 1, clientId: 1 },
+    {
+      unique: true,
+      partialFilterExpression: { clientId: { $type: "string" } },
+    }
+  );
 
   schema.pre("validate", function (next) {
     const ownerId = currentOwnerId();

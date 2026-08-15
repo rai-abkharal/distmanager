@@ -17,12 +17,13 @@ export const Expense = mongoose.model("Expense", expenseSchema);
 
 const categorySchema = new mongoose.Schema(
   {
-    name: { type: String, required: true, unique: true, trim: true },
+    name: { type: String, required: true, trim: true },
     isDefault: { type: Boolean, default: false },
   },
   { timestamps: true }
 );
 
 categorySchema.plugin(tenantPlugin);
+categorySchema.index({ owner: 1, name: 1 }, { unique: true });
 
 export const ExpenseCategory = mongoose.model("ExpenseCategory", categorySchema);
