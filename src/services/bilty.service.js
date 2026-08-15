@@ -11,6 +11,7 @@ import { companyService } from "./company.service.js";
 import { Counter } from "../models/Counter.model.js";
 import { Bilty } from "../models/Bilty.model.js";
 import { Product } from "../models/Product.model.js";
+import { Party } from "../models/Party.model.js";
 import { ApiError } from "../utils/ApiError.js";
 import { resolveReference } from "../utils/client-reference.js";
 

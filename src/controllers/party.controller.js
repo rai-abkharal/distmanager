@@ -28,7 +28,7 @@ export const partyController = {
   }),
 
   update: asyncWrapper(async (req, res) => {
-    const party = await partyRepository.update(req.params.id, req.body);
+    const party = await partyService.update(req.params.id, req.body);
     if (!party) throw new ApiError(404, "Party not found");
     res.status(200).json(new ApiResponse(200, party, "Party updated"));
   }),
