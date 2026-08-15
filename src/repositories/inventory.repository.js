@@ -14,10 +14,17 @@ export const inventoryRepository = {
     ),
 
   setThreshold: (productId, threshold) =>
-    Inventory.findOneAndUpdate({ product: productId }, { lowStockThreshold: threshold }, { new: true }),
+    Inventory.findOneAndUpdate(
+      { product: productId },
+      { lowStockThreshold: Number(threshold) || 0 },
+      { new: true, upsert: true }
+    ),
 
   lowStock: () =>
-    Inventory.find({ $expr: { $lte: ["$currentStock", "$lowStockThreshold"] } }).populate("product"),
+    Inventory.find({
+      lowStockThreshold: { $gt: 0 },
+      $expr: { $lte: ["$currentStock", "$lowStockThreshold"] },
+    }).populate("product"),
 
   addMovement: (data, session = null) =>
     session ? StockMovement.create([data], { session }).then((r) => r[0]) : StockMovement.create(data),

@@ -143,7 +143,11 @@ export const inventoryService = {
 
   getStockLevels: () => inventoryRepository.findAll(),
   getMovements: (productId, filters) => inventoryRepository.movements(productId, filters),
-  setThreshold: ({ productId, threshold }) => inventoryRepository.setThreshold(productId, threshold),
+  setThreshold: ({ productId, threshold, lowStockThreshold }) =>
+    inventoryRepository.setThreshold(
+      productId,
+      threshold != null ? threshold : lowStockThreshold
+    ),
   setStock: async ({ productId, quantity, note = "" }) => {
     if (quantity < 0) throw new ApiError(400, "Stock cannot be negative");
     const product = await productRepository.findById(productId);

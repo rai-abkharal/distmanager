@@ -45,6 +45,7 @@ export const expenseRepository = {
   },
 
   // Categories
+  allCategories: () => ExpenseCategory.find().sort({ name: 1 }),
   createCategory: (name) => ExpenseCategory.create({ name }),
   removeCategory: async (idOrName) => {
     if (!idOrName) return null;
