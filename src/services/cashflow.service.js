@@ -84,6 +84,10 @@ export const cashflowService = {
     return expenseRepository.createCategory(trimmed);
   },
 
+  deleteCategory: async (idOrName) => {
+    return expenseRepository.removeCategory(idOrName);
+  },
+
   updateExpense: async (id, data) => {
     if (data.amount != null && data.amount <= 0)
       throw new ApiError(400, "Amount must be greater than 0");

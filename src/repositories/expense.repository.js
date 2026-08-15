@@ -46,6 +46,19 @@ export const expenseRepository = {
 
   // Categories
   createCategory: (name) => ExpenseCategory.create({ name }),
-  allCategories: () => ExpenseCategory.find().sort({ name: 1 }),
-  removeCategory: (id) => ExpenseCategory.findByIdAndDelete(id),
+  removeCategory: async (idOrName) => {
+    if (!idOrName) return null;
+    const str = String(idOrName).trim();
+    if (str.match(/^[0-9a-fA-F]{24}$/)) {
+      return ExpenseCategory.findByIdAndDelete(str);
+    }
+    return ExpenseCategory.findOneAndDelete({
+      name: {
+        $regex: new RegExp(
+          `^${str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+          "i"
+        ),
+      },
+    });
+  },
 };
