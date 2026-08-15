@@ -30,6 +30,11 @@ export const productController = {
     res.status(200).json(new ApiResponse(200, null, "Product archived"));
   }),
 
+  delete: asyncWrapper(async (req, res) => {
+    await productRepository.remove(req.params.id);
+    res.status(200).json(new ApiResponse(200, null, "Product deleted"));
+  }),
+
   // Preview free units for a given quantity (scheme calc)
   previewScheme: asyncWrapper(async (req, res) => {
     const product = await productRepository.findById(req.params.id);
