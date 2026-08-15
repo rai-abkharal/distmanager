@@ -1,7 +1,7 @@
 import { expenseRepository } from "../repositories/expense.repository.js";
 import { companyRepository } from "../repositories/company.repository.js";
 import { Ledger } from "../models/Ledger.model.js";
-import { ExpenseCategory } from "../models/Expense.model.js";
+import { Expense, ExpenseCategory } from "../models/Expense.model.js";
 import { settingsRepository } from "../repositories/settings.repository.js";
 import { ApiError } from "../utils/ApiError.js";
 
@@ -86,6 +86,33 @@ export const cashflowService = {
 
   deleteCategory: async (idOrName) => {
     return expenseRepository.removeCategory(idOrName);
+  },
+
+  updateCategory: async (idOrName, newName) => {
+    const trimmed = String(newName || "").trim();
+    if (!trimmed) throw new ApiError(400, "New category name is required");
+
+    let oldCategory;
+    if (String(idOrName).match(/^[0-9a-fA-F]{24}$/)) {
+      oldCategory = await ExpenseCategory.findById(idOrName);
+    } else {
+      oldCategory = await ExpenseCategory.findOne({
+        name: {
+          $regex: new RegExp(
+            `^${String(idOrName).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}$`,
+            "i"
+          ),
+        },
+      });
+    }
+
+    if (!oldCategory) throw new ApiError(404, "Category not found");
+    const oldName = oldCategory.name;
+    oldCategory.name = trimmed;
+    await oldCategory.save();
+    // Update all historical expenses to the new category name
+    await Expense.updateMany({ category: oldName }, { category: trimmed });
+    return oldCategory;
   },
 
   updateExpense: async (id, data) => {

@@ -13,6 +13,7 @@ router.get("/cash-in-hand", cashflowController.cashInHand);
 router.get("/daily-summary", cashflowController.dailySummary);
 router.get("/categories", cashflowController.categories);
 router.post("/categories", cashflowController.addCategory);
+router.put("/categories/:id", cashflowController.updateCategory);
 router.delete("/categories/:id", cashflowController.deleteCategory);
 router.get("/settings", cashflowController.getSettings);
 router.put("/settings", cashflowController.updateSettings);

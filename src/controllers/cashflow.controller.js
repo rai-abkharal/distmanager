@@ -48,6 +48,11 @@ export const cashflowController = {
     res.status(201).json(new ApiResponse(201, data, "Category added"));
   }),
 
+  updateCategory: asyncWrapper(async (req, res) => {
+    const data = await cashflowService.updateCategory(req.params.id, req.body.name);
+    res.status(200).json(new ApiResponse(200, data, "Category updated"));
+  }),
+
   deleteCategory: asyncWrapper(async (req, res) => {
     await cashflowService.deleteCategory(req.params.id);
     res.status(200).json(new ApiResponse(200, null, "Category deleted"));
