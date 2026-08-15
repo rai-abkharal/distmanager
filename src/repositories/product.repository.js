@@ -1,7 +1,13 @@
 import { Product } from "../models/Product.model.js";
 
 export const productRepository = {
-  create: (data) => Product.create(data),
+  create: async (data) => {
+    if (data.clientId) {
+      const existing = await Product.findOne({ clientId: data.clientId });
+      if (existing) return existing;
+    }
+    return Product.create(data);
+  },
   findById: (id) => Product.findById(id),
   findAll: (includeArchived = false) =>
     Product.find(includeArchived ? {} : { isArchived: false }).sort({ sortOrder: 1, name: 1 }),

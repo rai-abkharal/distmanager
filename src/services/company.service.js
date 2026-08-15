@@ -1,5 +1,5 @@
 import { companyRepository } from "../repositories/company.repository.js";
-import { settingsService } from "./cashflow.service.js"; // getCurrentCycleMonth helper below
+import { StockMovement } from "../models/Inventory.model.js";
 import { ApiError } from "../utils/ApiError.js";
 
 // Helper: current cycle month key e.g. "2026-07"
@@ -9,9 +9,41 @@ export const getCycleMonthKey = (date = new Date()) => {
   return `${y}-${m}`;
 };
 
+const getMedicinesReceived = async ({ startDate, endDate } = {}) => {
+  const query = { direction: "in" };
+  if (startDate || endDate) {
+    query.date = {};
+    if (startDate) query.date.$gte = new Date(startDate);
+    if (endDate) query.date.$lte = new Date(endDate);
+  }
+  const movements = await StockMovement.find(query).populate("product").sort({ date: -1 });
+  let totalQuantity = 0;
+  let totalValue = 0;
+  const items = movements.map((m) => {
+    const qty = m.quantity || 0;
+    const price = m.product?.price || 0;
+    const val = qty * price;
+    totalQuantity += qty;
+    totalValue += val;
+    return {
+      id: m._id,
+      productId: m.product?._id,
+      productName: m.product?.name || "Medicine",
+      unit: m.product?.unit || "units",
+      quantity: qty,
+      price,
+      value: val,
+      date: m.date,
+      note: m.note || "Received from company",
+      balanceAfter: m.balanceAfter,
+    };
+  });
+  return { totalQuantity, totalValue, items };
+};
+
 export const companyService = {
   // Increase liability (stock receipt / bilty)
-  addLiability: async ({ amount, source, refId = null, note = "" }, session = null) => {
+  addLiability: async ({ amount, source, refId = null, note = "", date }, session = null) => {
     return companyRepository.addLedgerEntry(
       {
         type: "debit",
@@ -19,7 +51,8 @@ export const companyService = {
         source,
         refId,
         note,
-        cycleMonth: getCycleMonthKey(),
+        date: date || new Date(),
+        cycleMonth: getCycleMonthKey(date ? new Date(date) : new Date()),
       },
       session
     );
@@ -37,26 +70,49 @@ export const companyService = {
       source: "payment",
       refId: payment._id,
       note: `Payment to company (${mode})`,
+      date: date || new Date(),
       cycleMonth,
     });
     return payment;
   },
 
-  getAccountSummary: async () => {
-    const cycleMonth = getCycleMonthKey();
+  getAccountSummary: async ({ startDate, endDate, month } = {}) => {
+    const cycleMonth = month || getCycleMonthKey();
     const { balance } = await companyRepository.totalLiability();
-    const paidThisMonth = await companyRepository.paidThisMonth(cycleMonth);
-    return { totalLiability: balance, paidThisMonth, remaining: balance };
+    const paid = (startDate || endDate)
+      ? await companyRepository.paidBetween({ startDate, endDate })
+      : await companyRepository.paidThisMonth(cycleMonth);
+    const medicines = await getMedicinesReceived({ startDate, endDate });
+    return {
+      totalLiability: balance,
+      paidThisCycle: paid,
+      remaining: balance,
+      totalMedicinesQuantity: medicines.totalQuantity,
+      totalMedicinesValue: medicines.totalValue,
+      medicinesList: medicines.items,
+    };
   },
 
-  monthlyStatement: async (cycleMonth) => {
-    const month = cycleMonth || getCycleMonthKey();
-    const ledger = await companyRepository.ledgerByMonth(month);
-    const payments = await companyRepository.payments({ cycleMonth: month });
+  monthlyStatement: async ({ startDate, endDate, month } = {}) => {
+    const cycleMonth = month || (!startDate && !endDate ? getCycleMonthKey() : null);
+    const ledger = await companyRepository.ledgerByRange({ startDate, endDate, cycleMonth });
+    const payments = await companyRepository.payments({ cycleMonth, startDate, endDate });
+    const medicines = await getMedicinesReceived({ startDate, endDate });
     const debits = ledger.filter((l) => l.type === "debit");
     const credits = ledger.filter((l) => l.type === "credit");
     const totalDebit = debits.reduce((s, l) => s + l.amount, 0);
     const totalCredit = credits.reduce((s, l) => s + l.amount, 0);
-    return { month, debits, credits, payments, totalDebit, totalCredit, balance: totalDebit - totalCredit };
+    return {
+      month: cycleMonth || "Custom",
+      debits,
+      credits,
+      payments,
+      medicines: medicines.items,
+      totalMedicinesQuantity: medicines.totalQuantity,
+      totalMedicinesValue: medicines.totalValue,
+      totalDebit,
+      totalCredit,
+      balance: totalDebit - totalCredit,
+    };
   },
 };

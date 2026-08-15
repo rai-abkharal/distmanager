@@ -1,8 +1,13 @@
 import { Bilty } from "../models/Bilty.model.js";
 
 export const biltyRepository = {
-  create: (data, session = null) =>
-    session ? Bilty.create([data], { session }).then((r) => r[0]) : Bilty.create(data),
+  create: async (data, session = null) => {
+    if (data.clientId) {
+      const existing = await Bilty.findOne({ clientId: data.clientId });
+      if (existing) return existing;
+    }
+    return session ? Bilty.create([data], { session }).then((r) => r[0]) : Bilty.create(data);
+  },
 
   update: (id, data, session = null) =>
     Bilty.findByIdAndUpdate(id, data, { new: true, session }),

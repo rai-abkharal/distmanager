@@ -15,11 +15,21 @@ export const tenantPlugin = (schema) => {
       required: true,
       index: true,
     },
+    // Stable device-generated identifier. Unlike Mongo's _id it can be used
+    // before a record reaches the server, then safely mapped after sync.
+    clientId: { type: String, trim: true, index: true, sparse: true },
+    version: { type: Number, default: 1, min: 1 },
   });
+  schema.index({ owner: 1, clientId: 1 }, { unique: true, sparse: true });
 
   schema.pre("validate", function (next) {
     const ownerId = currentOwnerId();
     if (ownerId && !this.owner) this.owner = ownerId;
+    next();
+  });
+
+  schema.pre("findOneAndUpdate", function (next) {
+    this.setUpdate({ ...this.getUpdate(), $inc: { ...(this.getUpdate().$inc || {}), version: 1 } });
     next();
   });
 

@@ -9,12 +9,14 @@ export const companyController = {
   }),
 
   summary: asyncWrapper(async (req, res) => {
-    const summary = await companyService.getAccountSummary();
+    const { startDate, endDate, month } = req.query;
+    const summary = await companyService.getAccountSummary({ startDate, endDate, month });
     res.status(200).json(new ApiResponse(200, summary));
   }),
 
   monthlyStatement: asyncWrapper(async (req, res) => {
-    const statement = await companyService.monthlyStatement(req.query.month);
+    const { startDate, endDate, month } = req.query;
+    const statement = await companyService.monthlyStatement({ startDate, endDate, month });
     res.status(200).json(new ApiResponse(200, statement));
   }),
 };

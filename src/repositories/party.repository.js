@@ -9,7 +9,13 @@ const SORT_MAP = {
 };
 
 export const partyRepository = {
-  create: (data) => Party.create(data),
+  create: async (data) => {
+    if (data.clientId) {
+      const existing = await Party.findOne({ clientId: data.clientId });
+      if (existing) return existing;
+    }
+    return Party.create(data);
+  },
 
   findById: (id) => Party.findById(id),
 

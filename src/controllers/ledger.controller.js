@@ -8,6 +8,11 @@ export const ledgerController = {
     res.status(201).json(new ApiResponse(201, entry, "Payment recorded"));
   }),
 
+  recordDeliveryCharge: asyncWrapper(async (req, res) => {
+    const entry = await ledgerService.recordDeliveryCharge(req.body);
+    res.status(201).json(new ApiResponse(201, entry, "Delivery charge recorded"));
+  }),
+
   manualEntry: asyncWrapper(async (req, res) => {
     const entry = await ledgerService.manualEntry(req.body);
     res.status(201).json(new ApiResponse(201, entry, "Ledger entry created"));

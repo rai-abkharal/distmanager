@@ -7,6 +7,7 @@ export const partySchema = z.object({
     address: z.string().optional(),
     city: z.string().optional(),
     openingBalance: z.number().optional(),
+    clientId: z.string().uuid().optional(),
   }),
 });
 
@@ -17,6 +18,7 @@ export const productSchema = z.object({
     packSize: z.number().positive().optional(),
     openingStock: z.number().min(0).optional(),
     price: z.number().min(0),
+    clientId: z.string().uuid().optional(),
     scheme: z
       .object({
         isActive: z.boolean().optional(),
@@ -29,32 +31,48 @@ export const productSchema = z.object({
 
 export const paymentSchema = z.object({
   body: z.object({
-    partyId: z.string().min(1),
+    partyId: z.string().min(1).optional(),
+    partyClientId: z.string().uuid().optional(),
     amount: z.number().positive(),
     paymentMode: z.enum(["cash", "online"]).optional(),
     description: z.string().optional(),
     date: z.string().optional(),
     hasDeliveryCharge: z.boolean().optional(),
     deliveryCharge: z.number().min(0).optional(),
+    clientId: z.string().uuid().optional(),
+  }),
+});
+
+export const deliveryChargeSchema = z.object({
+  body: z.object({
+    partyId: z.string().min(1).optional(),
+    partyClientId: z.string().uuid().optional(),
+    amount: z.number().positive(),
+    description: z.string().optional(),
+    date: z.string().optional(),
+    clientId: z.string().uuid().optional(),
   }),
 });
 
 export const biltySchema = z.object({
   body: z.object({
-    partyId: z.string().min(1),
+    partyId: z.string().min(1).optional(),
+    partyClientId: z.string().uuid().optional(),
     date: z.string().optional(),
     billNumber: z.string().max(40).optional(),
     fromCompany: z.boolean().optional(),
     items: z
       .array(
         z.object({
-          productId: z.string().min(1),
+          productId: z.string().min(1).optional(),
+          productClientId: z.string().uuid().optional(),
           quantity: z.number().positive(),
         })
       )
       .min(1, "At least one item required"),
     hasDeliveryCharge: z.boolean().optional(),
     deliveryCharge: z.number().min(0).optional(),
+    clientId: z.string().uuid().optional(),
   }),
 });
 

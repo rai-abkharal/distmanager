@@ -11,6 +11,7 @@ import dashboardRoutes from "./dashboard.routes.js";
 import reportRoutes from "./report.routes.js";
 import onboardingRoutes from "./onboarding.routes.js";
 import { protect } from "../../middlewares/auth.middleware.js";
+import { idempotency } from "../../middlewares/idempotency.middleware.js";
 
 const router = Router();
 
@@ -18,14 +19,14 @@ const router = Router();
 router.use("/auth", authRoutes);
 
 // Protected (require PIN/JWT)
-router.use("/onboarding", protect, onboardingRoutes);
-router.use("/parties", protect, partyRoutes);
-router.use("/products", protect, productRoutes);
-router.use("/ledger", protect, ledgerRoutes);
-router.use("/inventory", protect, inventoryRoutes);
-router.use("/bilty", protect, biltyRoutes);
-router.use("/company", protect, companyRoutes);
-router.use("/cashflow", protect, cashflowRoutes);
+router.use("/onboarding", protect, idempotency, onboardingRoutes);
+router.use("/parties", protect, idempotency, partyRoutes);
+router.use("/products", protect, idempotency, productRoutes);
+router.use("/ledger", protect, idempotency, ledgerRoutes);
+router.use("/inventory", protect, idempotency, inventoryRoutes);
+router.use("/bilty", protect, idempotency, biltyRoutes);
+router.use("/company", protect, idempotency, companyRoutes);
+router.use("/cashflow", protect, idempotency, cashflowRoutes);
 router.use("/dashboard", protect, dashboardRoutes);
 router.use("/reports", protect, reportRoutes);
 

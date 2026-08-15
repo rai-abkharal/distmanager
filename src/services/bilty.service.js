@@ -10,7 +10,9 @@ import { productService } from "./product.service.js";
 import { companyService } from "./company.service.js";
 import { Counter } from "../models/Counter.model.js";
 import { Bilty } from "../models/Bilty.model.js";
+import { Product } from "../models/Product.model.js";
 import { ApiError } from "../utils/ApiError.js";
+import { resolveReference } from "../utils/client-reference.js";
 
 /** Next auto bill number ("INV-0007"), atomically incremented in the session. */
 const nextBillNumber = async (session) => {
@@ -54,8 +56,12 @@ const buildItems = async (items, fromCompany, session) => {
   let productValue = 0;
   const biltyItems = [];
   for (const it of items) {
-    const product = await productRepository.findById(it.productId);
-    if (!product) throw new ApiError(404, `Product not found: ${it.productId}`);
+    const product = await resolveReference(
+      Product,
+      it.productId,
+      it.productClientId,
+      "Product",
+    );
     const freeQuantity = productService.calculateFreeUnits(product, it.quantity);
 
     if (!fromCompany) {
@@ -197,14 +203,14 @@ export const biltyService = {
   createBilty: async ({
     date,
     partyId,
+    partyClientId,
     items,
     fromCompany = true,
     hasDeliveryCharge,
     deliveryCharge = 0,
     billNumber,
   }) => {
-    const party = await partyRepository.findById(partyId);
-    if (!party) throw new ApiError(404, "Party not found");
+    const party = await resolveReference(Party, partyId, partyClientId, "Party");
     if (!items?.length) throw new ApiError(400, "At least one item required");
     if (hasDeliveryCharge && (!deliveryCharge || deliveryCharge <= 0)) {
       throw new ApiError(400, "Delivery charge amount required when checkbox is checked");
@@ -226,7 +232,7 @@ export const biltyService = {
         {
           billNumber: finalBillNumber,
           date: date || new Date(),
-          party: partyId,
+          party: party._id,
           items: biltyItems,
           productValue,
           fromCompany: !!fromCompany,
@@ -238,7 +244,7 @@ export const biltyService = {
 
       await applyBiltyEffects(bilty, session);
       // Rebuild running balances so a back-dated bill lands in the right place.
-      await ledgerService.recalcParty(partyId, session);
+      await ledgerService.recalcParty(party._id, session);
 
       await session.commitTransaction();
       return bilty;
